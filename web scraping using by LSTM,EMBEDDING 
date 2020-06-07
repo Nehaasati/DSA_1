@@ -1,0 +1,915 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "name": "Untitled5.ipynb",
+      "provenance": [],
+      "mount_file_id": "1uMrgavpII0wZsOiP88GkFQEYrEacbHPk",
+      "authorship_tag": "ABX9TyMseY3qRE3UJj1T88vMqSTI",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/Nehaasati/DSA_1/blob/master/web%20scraping%20using%20by%20LSTM%2CEMBEDDING%20\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "Lg0VhdhT_8kt",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "import pandas as pd\n",
+        "import tensorflow as tf"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "IhxMFHuoCjMP",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 56
+        },
+        "outputId": "f895e86d-fe85-4fb1-9032-ce3827efdc87"
+      },
+      "source": [
+        "from google.colab import drive\n",
+        "drive.mount('/content/drive/')"
+      ],
+      "execution_count": 2,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Drive already mounted at /content/drive/; to attempt to forcibly remount, call drive.mount(\"/content/drive/\", force_remount=True).\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "eLog0ddYCjOt",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 36
+        },
+        "outputId": "023225a8-a360-4fed-a911-0d2d279a0c13"
+      },
+      "source": [
+        "!pip install -q keras\n",
+        "import keras\n",
+        "import tensorflow as tf"
+      ],
+      "execution_count": 3,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Using TensorFlow backend.\n"
+          ],
+          "name": "stderr"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "Q0ju1cZsNsK_",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "from keras.layers import Dense,LSTM,Embedding,Dropout\n",
+        "from keras.models import Sequential,Model\n"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "pVEhkyJOCjIr",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "import tensorflow as tf\n",
+        "from tensorflow.keras.models import Sequential\n",
+        "from tensorflow.keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2D,BatchNormalization\n",
+        "from tensorflow.keras.preprocessing.image import ImageDataGenerator\n",
+        "from tensorflow.python.keras.utils.data_utils import Sequence\n",
+        "from tensorflow.keras.models import Model \n",
+        "from tensorflow.keras.preprocessing.text import one_hot\n",
+        "from tensorflow.keras.preprocessing.sequence import pad_sequences"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "mCxacAdhPVN9",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "Data_dir= \"/content/drive/My Drive/129603_310019_compressed_fake_or_real_news.csv/fake_or_real_news.csv\"\n"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "rIXaqqTaPVRs",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "df= pd.read_csv(\"/content/drive/My Drive/129603_310019_compressed_fake_or_real_news.csv/fake_or_real_news.csv\")"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "vaU0GMspQveq",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 206
+        },
+        "outputId": "6a235283-b787-4950-b072-a4e40ba0b858"
+      },
+      "source": [
+        "df.head()\n"
+      ],
+      "execution_count": 50,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>Unnamed: 0</th>\n",
+              "      <th>title</th>\n",
+              "      <th>text</th>\n",
+              "      <th>label</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>8476</td>\n",
+              "      <td>You Can Smell Hillary’s Fear</td>\n",
+              "      <td>Daniel Greenfield, a Shillman Journalism Fello...</td>\n",
+              "      <td>FAKE</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>10294</td>\n",
+              "      <td>Watch The Exact Moment Paul Ryan Committed Pol...</td>\n",
+              "      <td>Google Pinterest Digg Linkedin Reddit Stumbleu...</td>\n",
+              "      <td>FAKE</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2</th>\n",
+              "      <td>3608</td>\n",
+              "      <td>Kerry to go to Paris in gesture of sympathy</td>\n",
+              "      <td>U.S. Secretary of State John F. Kerry said Mon...</td>\n",
+              "      <td>REAL</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>3</th>\n",
+              "      <td>10142</td>\n",
+              "      <td>Bernie supporters on Twitter erupt in anger ag...</td>\n",
+              "      <td>— Kaydee King (@KaydeeKing) November 9, 2016 T...</td>\n",
+              "      <td>FAKE</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>4</th>\n",
+              "      <td>875</td>\n",
+              "      <td>The Battle of New York: Why This Primary Matters</td>\n",
+              "      <td>It's primary day in New York and front-runners...</td>\n",
+              "      <td>REAL</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "   Unnamed: 0  ... label\n",
+              "0        8476  ...  FAKE\n",
+              "1       10294  ...  FAKE\n",
+              "2        3608  ...  REAL\n",
+              "3       10142  ...  FAKE\n",
+              "4         875  ...  REAL\n",
+              "\n",
+              "[5 rows x 4 columns]"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 50
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "UEKAGGMHQvjq",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 279
+        },
+        "outputId": "b11c252e-2352-4d4b-917e-9f59cbb44088"
+      },
+      "source": [
+        "df=df.dropna()\n",
+        "x=df.drop('label',axis=1)\n",
+        "print(x)"
+      ],
+      "execution_count": 51,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "      Unnamed: 0  ...                                               text\n",
+            "0           8476  ...  Daniel Greenfield, a Shillman Journalism Fello...\n",
+            "1          10294  ...  Google Pinterest Digg Linkedin Reddit Stumbleu...\n",
+            "2           3608  ...  U.S. Secretary of State John F. Kerry said Mon...\n",
+            "3          10142  ...  — Kaydee King (@KaydeeKing) November 9, 2016 T...\n",
+            "4            875  ...  It's primary day in New York and front-runners...\n",
+            "...          ...  ...                                                ...\n",
+            "6330        4490  ...  The State Department told the Republican Natio...\n",
+            "6331        8062  ...  The ‘P’ in PBS Should Stand for ‘Plutocratic’ ...\n",
+            "6332        8622  ...   Anti-Trump Protesters Are Tools of the Oligar...\n",
+            "6333        4021  ...  ADDIS ABABA, Ethiopia —President Obama convene...\n",
+            "6334        4330  ...  Jeb Bush Is Suddenly Attacking Trump. Here's W...\n",
+            "\n",
+            "[6335 rows x 3 columns]\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "ECcEG6tTDT7X",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 279
+        },
+        "outputId": "84e5bcc4-7101-463a-8573-ce1441088e1c"
+      },
+      "source": [
+        "y=pd.get_dummies(df.label,prefix='label').iloc[:,1:]\n",
+        "\n",
+        "print (y)"
+      ],
+      "execution_count": 52,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "      label_REAL\n",
+            "0              0\n",
+            "1              0\n",
+            "2              1\n",
+            "3              0\n",
+            "4              1\n",
+            "...          ...\n",
+            "6330           1\n",
+            "6331           0\n",
+            "6332           0\n",
+            "6333           1\n",
+            "6334           1\n",
+            "\n",
+            "[6335 rows x 1 columns]\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "GwNXDGc0mGwS",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 36
+        },
+        "outputId": "d09c6548-e771-4b28-bea9-95b241fb67b8"
+      },
+      "source": [
+        "\n",
+        "y.shape"
+      ],
+      "execution_count": 53,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "(6335, 1)"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 53
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "-ZziqjDjRXCZ",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "voc_size=5000"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "EoXF8OLtRW_e",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 279
+        },
+        "outputId": "1cc4af78-1d3a-4681-abf4-4cbcd8a7e719"
+      },
+      "source": [
+        "message=x.copy()\n",
+        "print(message)"
+      ],
+      "execution_count": 56,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "      Unnamed: 0  ...                                               text\n",
+            "0           8476  ...  Daniel Greenfield, a Shillman Journalism Fello...\n",
+            "1          10294  ...  Google Pinterest Digg Linkedin Reddit Stumbleu...\n",
+            "2           3608  ...  U.S. Secretary of State John F. Kerry said Mon...\n",
+            "3          10142  ...  — Kaydee King (@KaydeeKing) November 9, 2016 T...\n",
+            "4            875  ...  It's primary day in New York and front-runners...\n",
+            "...          ...  ...                                                ...\n",
+            "6330        4490  ...  The State Department told the Republican Natio...\n",
+            "6331        8062  ...  The ‘P’ in PBS Should Stand for ‘Plutocratic’ ...\n",
+            "6332        8622  ...   Anti-Trump Protesters Are Tools of the Oligar...\n",
+            "6333        4021  ...  ADDIS ABABA, Ethiopia —President Obama convene...\n",
+            "6334        4330  ...  Jeb Bush Is Suddenly Attacking Trump. Here's W...\n",
+            "\n",
+            "[6335 rows x 3 columns]\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "0CrsY25KRW8d",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "message.reset_index(inplace=True)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "__lhHvvbRW38",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "import nltk\n",
+        "import re\n",
+        "from nltk.corpus import stopwords"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "mw_KdVARTYb7",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 73
+        },
+        "outputId": "46f5be3d-f8bb-403b-c6f9-267b6f4f26c0"
+      },
+      "source": [
+        "nltk.download('stopwords')"
+      ],
+      "execution_count": 60,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "[nltk_data] Downloading package stopwords to /root/nltk_data...\n",
+            "[nltk_data]   Package stopwords is already up-to-date!\n"
+          ],
+          "name": "stdout"
+        },
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "True"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 60
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "0UAqyL1pTYYz",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "from nltk.stem.porter import PorterStemmer\n",
+        "ps = PorterStemmer()\n",
+        "corpus=[]\n",
+        "for i in range(0,len(message)):\n",
+        "    print(i)\n",
+        "    review=re.sub('[^a-zA-Z]','',message['title'][i])\n",
+        "    review = review.lower()\n",
+        "    review = review.split()\n",
+        " \n",
+        "    review = [ps.stem(word) for word in review if not word in stopwords.words('english')]\n",
+        "    review=''.join(review)\n",
+        "    corpus.append(review)     "
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "A7WCkV1RTYVF",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "corpus"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "b2PZJJB4OjzV",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "one_hot_rep=[one_hot(words,voc_size) for words in corpus]\n",
+        "one_hot_rep"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "4Gnn-2ukOj2x",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "sent_len=20\n",
+        "embedded_seq=pad_sequences(one_hot_rep,padding='pre',maxlen=sent_len)\n",
+        "print(embedded_seq)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "oEplAZH3Oj5K",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 36
+        },
+        "outputId": "854d6948-bef8-4d56-8528-2bacb44c1653"
+      },
+      "source": [
+        "len(embedded_seq)"
+      ],
+      "execution_count": 64,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "6335"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 64
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "2nygic-2Oj8L",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 335
+        },
+        "outputId": "7bd90566-c102-4a88-8038-9231cb1f5a27"
+      },
+      "source": [
+        "##MODEL CREATION\n",
+        "embedding_feat=40\n",
+        "model=Sequential()\n",
+        "model.add(Embedding(voc_size,embedding_feat,input_length=sent_len))\n",
+        "#model.add(Dropout(0.25))\n",
+        "model.add(LSTM(100))\n",
+        "model.add(Dropout(0.25))\n",
+        "model.add(Dense(1,activation='sigmoid'))\n",
+        "model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])\n",
+        "print(model.summary())"
+      ],
+      "execution_count": 92,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Model: \"sequential_6\"\n",
+            "_________________________________________________________________\n",
+            "Layer (type)                 Output Shape              Param #   \n",
+            "=================================================================\n",
+            "embedding_8 (Embedding)      (None, 20, 40)            200000    \n",
+            "_________________________________________________________________\n",
+            "lstm_4 (LSTM)                (None, 100)               56400     \n",
+            "_________________________________________________________________\n",
+            "dropout_3 (Dropout)          (None, 100)               0         \n",
+            "_________________________________________________________________\n",
+            "dense_4 (Dense)              (None, 1)                 101       \n",
+            "=================================================================\n",
+            "Total params: 256,501\n",
+            "Trainable params: 256,501\n",
+            "Non-trainable params: 0\n",
+            "_________________________________________________________________\n",
+            "None\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "7SBk6jj4Ojw_",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 36
+        },
+        "outputId": "3b4759c8-06a2-44ea-90a9-a23abe4b3604"
+      },
+      "source": [
+        "len(embedded_seq)"
+      ],
+      "execution_count": 82,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "6335"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 82
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "LazHiuYyliLA",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "import numpy as np\n"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "5XgsoFdfliIo",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 279
+        },
+        "outputId": "22ba2546-6538-4a84-f86c-18c45f5e37a3"
+      },
+      "source": [
+        "x_final=np.array(embedded_seq)\n",
+        "y_final=np.array(y)\n",
+        "print(x_final)\n",
+        "print(y_final)"
+      ],
+      "execution_count": 84,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "[[   0    0    0 ...    0    0 3162]\n",
+            " [   0    0    0 ...    0    0 3032]\n",
+            " [   0    0    0 ...    0    0  331]\n",
+            " ...\n",
+            " [   0    0    0 ...    0    0 2015]\n",
+            " [   0    0    0 ...    0    0 4923]\n",
+            " [   0    0    0 ...    0    0 1545]]\n",
+            "[[0]\n",
+            " [0]\n",
+            " [1]\n",
+            " ...\n",
+            " [0]\n",
+            " [1]\n",
+            " [1]]\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "f4hNnQmrlpGY",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 36
+        },
+        "outputId": "490d5929-59ff-4cd7-e497-2abe8af0cc81"
+      },
+      "source": [
+        "x_final.shape,y_final.shape"
+      ],
+      "execution_count": 85,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "((6335, 20), (6335, 1))"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 85
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "fq6q-TqFlpKm",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "from sklearn.model_selection import  train_test_split\n",
+        "x_train,x_test,y_train,y_test=train_test_split(x_final,y_final,test_size=0.33,random_state=42)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "6fR7FZL3lpFE",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 487
+        },
+        "outputId": "c6abc767-8282-4a80-86a2-f49fad76e885"
+      },
+      "source": [
+        "model.fit(x_train,y_train,validation_data=(x_test,y_test),epochs=10,batch_size=64)"
+      ],
+      "execution_count": 94,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "/usr/local/lib/python3.6/dist-packages/tensorflow/python/framework/indexed_slices.py:434: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.\n",
+            "  \"Converting sparse IndexedSlices to a dense Tensor of unknown shape. \"\n"
+          ],
+          "name": "stderr"
+        },
+        {
+          "output_type": "stream",
+          "text": [
+            "Train on 4244 samples, validate on 2091 samples\n",
+            "Epoch 1/10\n",
+            "4244/4244 [==============================] - 3s 659us/step - loss: 0.6932 - accuracy: 0.5118 - val_loss: 0.6928 - val_accuracy: 0.5122\n",
+            "Epoch 2/10\n",
+            "4244/4244 [==============================] - 2s 562us/step - loss: 0.6877 - accuracy: 0.5662 - val_loss: 0.6929 - val_accuracy: 0.5002\n",
+            "Epoch 3/10\n",
+            "4244/4244 [==============================] - 2s 562us/step - loss: 0.5986 - accuracy: 0.7410 - val_loss: 0.8117 - val_accuracy: 0.5151\n",
+            "Epoch 4/10\n",
+            "4244/4244 [==============================] - 2s 556us/step - loss: 0.3820 - accuracy: 0.8160 - val_loss: 0.8779 - val_accuracy: 0.5112\n",
+            "Epoch 5/10\n",
+            "4244/4244 [==============================] - 2s 567us/step - loss: 0.3110 - accuracy: 0.8195 - val_loss: 1.0610 - val_accuracy: 0.5141\n",
+            "Epoch 6/10\n",
+            "4244/4244 [==============================] - 2s 560us/step - loss: 0.2904 - accuracy: 0.8188 - val_loss: 1.1095 - val_accuracy: 0.5108\n",
+            "Epoch 7/10\n",
+            "4244/4244 [==============================] - 2s 562us/step - loss: 0.2776 - accuracy: 0.8193 - val_loss: 1.1855 - val_accuracy: 0.5079\n",
+            "Epoch 8/10\n",
+            "4244/4244 [==============================] - 2s 565us/step - loss: 0.2729 - accuracy: 0.8160 - val_loss: 1.1828 - val_accuracy: 0.5103\n",
+            "Epoch 9/10\n",
+            "4244/4244 [==============================] - 2s 568us/step - loss: 0.2680 - accuracy: 0.8146 - val_loss: 1.2176 - val_accuracy: 0.5151\n",
+            "Epoch 10/10\n",
+            "4244/4244 [==============================] - 2s 573us/step - loss: 0.2637 - accuracy: 0.8226 - val_loss: 1.2203 - val_accuracy: 0.5141\n"
+          ],
+          "name": "stdout"
+        },
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "<keras.callbacks.callbacks.History at 0x7f5e7df49fd0>"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 94
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "c0bqjh5OL4xd",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "y_pred = model.predict_classes(x_test)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "C9pHJ1eSMGhy",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 54
+        },
+        "outputId": "635e561b-efde-4abd-85ea-c431065acec0"
+      },
+      "source": [
+        "from sklearn.metrics import confusion_matrix\n",
+        "confusion_matrix(y_test,y_pred)"
+      ],
+      "execution_count": 96,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "array([[537, 534],\n",
+              "       [482, 538]])"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 96
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "PW6k9lJMMGmW",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 36
+        },
+        "outputId": "10a27882-16f2-482f-d313-32e88c5188c1"
+      },
+      "source": [
+        "from sklearn.metrics import accuracy_score\n",
+        "accuracy_score(y_test,y_pred)"
+      ],
+      "execution_count": 97,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "0.5141080822572932"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 97
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "dhMgPcVZMGoq",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        ""
+      ],
+      "execution_count": 0,
+      "outputs": []
+    }
+  ]
+}
